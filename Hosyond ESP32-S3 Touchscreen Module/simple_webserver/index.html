@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-S3 Control</title>
+    <style>
+        body { font-family: system-ui, sans-serif; text-align: center; background: #f8f9fa; padding: 2rem; margin: 0; }
+        h1 { color: #1a3c5e; margin-bottom: 1.5rem; }
+        .info { font-size: 1.1rem; margin: 1rem 0; color: #444; line-height: 1.6; }
+        .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem; }
+        button { padding: 1rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px; color: white; cursor: pointer; transition: transform 0.1s; }
+        button:active { transform: scale(0.96); }
+        #red { background: #e63946; } #green { background: #2a9d8f; } #blue { background: #457b9d; }
+        #white { background: #e0e0e0; color: #333; } #off { background: #6c757d; }
+        #clock { font-weight: bold; color: #1a3c5e; }
+    </style>
+</head>
+<body>
+    <h1>ESP32-S3 Control Panel</h1>
+
+    <div class="info">
+        <strong>IP address:</strong> {{ ip_address }}<br>
+        <strong>CPU temperature:</strong> {{ cpu_temp }} °C<br>
+        <strong>Local Time:</strong> <span id="clock">Loading...</span>
+    </div>
+
+    <div class="buttons">
+        <form action="/set_color" method="POST"><input type="hidden" name="color" value="red"><button type="submit" id="red">Red</button></form>
+        <form action="/set_color" method="POST"><input type="hidden" name="color" value="green"><button type="submit" id="green">Green</button></form>
+        <form action="/set_color" method="POST"><input type="hidden" name="color" value="blue"><button type="submit" id="blue">Blue</button></form>
+        <form action="/set_color" method="POST"><input type="hidden" name="color" value="white"><button type="submit" id="white">White</button></form>
+        <form action="/set_color" method="POST"><input type="hidden" name="color" value="off"><button type="submit" id="off">Off</button></form>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('clock').textContent = timeString;
+        }
+        // Update immediately, then every second
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
