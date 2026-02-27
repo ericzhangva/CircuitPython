@@ -9,11 +9,27 @@
         h1 { color: #1a3c5e; margin-bottom: 1.5rem; }
         .info { font-size: 1.1rem; margin: 1rem 0; color: #444; line-height: 1.6; }
         .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; margin-top: 2rem; }
-        button { padding: 1rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px; color: white; cursor: pointer; transition: transform 0.1s; }
-        button:active { transform: scale(0.96); }
+
+        button {
+            padding: 1rem 2rem; font-size: 1.1rem; border: 4px solid transparent;
+            border-radius: 12px; color: white; cursor: pointer;
+            transition: all 0.1s ease; opacity: 0.8;
+        }
+
+        /* The visual indication: Glow and Scale */
+        button.active {
+            opacity: 1.0;
+            transform: scale(1.1);
+            border-color: #1a3c5e; /* Dark blue ring around active choice */
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+
         #red { background: #e63946; } #green { background: #2a9d8f; } #blue { background: #457b9d; }
-        #white { background: #e0e0e0; color: #333; } #off { background: #6c757d; }
-        #clock { font-weight: bold; color: #1a3c5e; }
+        #white { background: #ffffff; color: #333; border: 1px solid #ccc; } #off { background: #6c757d; }
+
+        #clock, #res-time { font-weight: bold; color: #1a3c5e; }
+        .fast { color: #2a9d8f !important; }
+        .slow { color: #e63946 !important; }
     </style>
 </head>
 <body>
@@ -22,26 +38,55 @@
     <div class="info">
         <strong>IP address:</strong> {{ ip_address }}<br>
         <strong>CPU temperature:</strong> {{ cpu_temp }} °C<br>
-        <strong>Local Time:</strong> <span id="clock">Loading...</span>
+        <strong>Local Time:</strong> <span id="clock">Loading...</span><br>
+        <strong>Response Time:</strong> <span id="res-time">0</span> ms
     </div>
 
     <div class="buttons">
-        <form action="/set_color" method="POST"><input type="hidden" name="color" value="red"><button type="submit" id="red">Red</button></form>
-        <form action="/set_color" method="POST"><input type="hidden" name="color" value="green"><button type="submit" id="green">Green</button></form>
-        <form action="/set_color" method="POST"><input type="hidden" name="color" value="blue"><button type="submit" id="blue">Blue</button></form>
-        <form action="/set_color" method="POST"><input type="hidden" name="color" value="white"><button type="submit" id="white">White</button></form>
-        <form action="/set_color" method="POST"><input type="hidden" name="color" value="off"><button type="submit" id="off">Off</button></form>
+        <button id="red" onclick="setColor('red', this)">Red</button>
+        <button id="green" onclick="setColor('green', this)">Green</button>
+        <button id="blue" onclick="setColor('blue', this)">Blue</button>
+        <button id="white" onclick="setColor('white', this)">White</button>
+        <button id="off" onclick="setColor('off', this)">Off</button>
     </div>
 
     <script>
         function updateClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            document.getElementById('clock').textContent = timeString;
+            document.getElementById('clock').textContent = now.toLocaleString();
         }
-        // Update immediately, then every second
         updateClock();
         setInterval(updateClock, 1000);
+
+        function setColor(colorName, element) {
+            const startTime = performance.now();
+            const resDisplay = document.getElementById('res-time');
+
+            // Visual feedback: Remove 'active' from all, add to clicked one
+            document.querySelectorAll('.buttons button').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+
+            const formData = new URLSearchParams();
+            formData.append('color', colorName);
+
+            fetch('/set_color', {
+                method: 'POST',
+                body: formData,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    const duration = Math.round(performance.now() - startTime);
+                    resDisplay.textContent = duration;
+                    resDisplay.className = duration < 100 ? 'fast' : 'slow';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resDisplay.textContent = "Error";
+                element.classList.remove('active'); // Remove highlight if failed
+            });
+        }
     </script>
 </body>
 </html>

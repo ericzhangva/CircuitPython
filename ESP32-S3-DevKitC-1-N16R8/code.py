@@ -163,8 +163,7 @@ def set_color(request: Request):
         status_lbl.text = "LED: OFF"
         status_lbl.color = 0x666666
 
-     # Return "OK" immediately so the browser can stop its timer
-    return Response(request, "OK", content_type="text/plain")
+    return Redirect(request, "/")
 
 # ────────────────────────────────────────────────
 # 5. MAIN LOOP
